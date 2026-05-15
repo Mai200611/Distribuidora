@@ -1,9 +1,13 @@
-using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using Distribuidora.API.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.AddDbContext<DataContext>(x =>
+    x.UseSqlServer("name=DefaultConnection", 
+        b => b.MigrationsAssembly("Distribuidora.API")));
 
 var app = builder.Build();
 
@@ -17,13 +21,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseRouting();
-
 app.UseAuthorization();
-
 app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
+app.MapRazorPages().WithStaticAssets();
 
 app.Run();
