@@ -1,1 +1,5 @@
-<Solution />
+<Solution>
+  <Project Path="Distribuidora.API/Distribuidora.API.csproj" Id="b62c54ea-3838-4601-845f-74c6172ce7b7" />
+  <Project Path="Distribuidora.Shared/Distribuidora.Shared.csproj" Id="5e5111b2-597c-4cdd-a38d-99ba6eb074d2" />
+  <Project Path="Distribuidora.WEB/Distribuidora.WEB.csproj" Id="01267c57-b865-4676-be7f-5307463839ef" />
+</Solution>
