@@ -1,0 +1,20 @@
+@page "/Zonas/create"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Nueva Zona</h3>
+<ZonaForm Zona="Zona" OnValidSubmit="Guardar" Error="@Error" />
+
+@code {
+    private ZonaDTO Zona = new() { MaxEmpleados = 3 };
+    private string? Error;
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Post<ZonaDTO, ZonaDTO>("api/zonas", Zona);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Zonas");
+    }
+}

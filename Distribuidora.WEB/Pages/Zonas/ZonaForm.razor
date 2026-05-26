@@ -1,0 +1,35 @@
+@using Distribuidora.Shared.DTOs
+
+<EditForm Model="Zona" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label">Nombre Zona</label>
+        <InputText class="form-control" @bind-Value="Zona!.NombreZona" />
+        <ValidationMessage For="@(() => Zona.NombreZona)" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Descripcion</label>
+        <InputTextArea class="form-control" @bind-Value="Zona.Descripcion" rows="3" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Max. Empleados</label>
+        <InputNumber class="form-control" @bind-Value="Zona.MaxEmpleados" />
+    </div>
+
+    <button type="submit" class="btn btn-primary me-2">Guardar</button>
+    <a class="btn btn-secondary" href="/Zonas">Cancelar</a>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="alert alert-danger mt-3">@Error</div>
+    }
+</EditForm>
+
+@code {
+    [Parameter] public ZonaDTO? Zona { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public string? Error { get; set; }
+}

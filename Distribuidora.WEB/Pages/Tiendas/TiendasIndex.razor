@@ -1,0 +1,70 @@
+@page "/Tiendas"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Tiendas</h3>
+
+<a class="btn btn-primary mb-3" href="/Tiendas/create">
+    <i class="bi bi-plus-circle"></i> Nueva Tienda
+</a>
+
+<GenericList MyList="Tiendas">
+    <Body>
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Encargado</th>
+                    <th>Direccion</th>
+                    <th>Telefono</th>
+                    <th>Barrio</th>
+                    <th>Zona</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Tiendas!)
+                {
+                    <tr>
+                        <td>@t.NombreTienda</td>
+                        <td>@t.EncargadoTienda</td>
+                        <td>@t.Direccion</td>
+                        <td>@t.Telefono</td>
+                        <td>@t.Barrio</td>
+                        <td>@t.Zona</td>
+                        <td>
+                            <a class="btn btn-warning btn-sm me-1" href="/Tiendas/edit/@t.Id">Editar</a>
+                            <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(t.Id)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </Body>
+</GenericList>
+
+@if (!string.IsNullOrEmpty(Error))
+{
+    <div class="alert alert-danger mt-2">@Error</div>
+}
+
+@code {
+    public List<TiendaDTO>? Tiendas { get; set; }
+    private string? Error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Repository.Get<List<TiendaDTO>>("api/tiendas");
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        Tiendas = response.Response;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        var response = await Repository.Delete($"api/tiendas/{id}");
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        Tiendas = Tiendas!.Where(t => t.Id != id).ToList();
+    }
+}

@@ -1,0 +1,20 @@
+@page "/Tiendas/create"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Nueva Tienda</h3>
+<TiendaForm Tienda="Tienda" OnValidSubmit="Guardar" Error="@Error" />
+
+@code {
+    private TiendaDTO Tienda = new();
+    private string? Error;
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Post<TiendaDTO, TiendaDTO>("api/tiendas", Tienda);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Tiendas");
+    }
+}

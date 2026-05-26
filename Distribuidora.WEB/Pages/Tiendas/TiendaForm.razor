@@ -1,0 +1,47 @@
+@using Distribuidora.Shared.DTOs
+
+<EditForm Model="Tienda" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Nombre Tienda</label>
+            <InputText class="form-control" @bind-Value="Tienda!.NombreTienda" />
+            <ValidationMessage For="@(() => Tienda.NombreTienda)" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Encargado</label>
+            <InputText class="form-control" @bind-Value="Tienda.EncargadoTienda" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Direccion</label>
+            <InputText class="form-control" @bind-Value="Tienda.Direccion" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Telefono</label>
+            <InputText class="form-control" @bind-Value="Tienda.Telefono" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Barrio</label>
+            <InputText class="form-control" @bind-Value="Tienda.Barrio" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Zona</label>
+            <InputText class="form-control" @bind-Value="Tienda.Zona" />
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary me-2">Guardar</button>
+    <a class="btn btn-secondary" href="/Tiendas">Cancelar</a>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="alert alert-danger mt-3">@Error</div>
+    }
+</EditForm>
+
+@code {
+    [Parameter] public TiendaDTO? Tienda { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public string? Error { get; set; }
+}

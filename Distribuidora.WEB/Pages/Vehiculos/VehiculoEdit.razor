@@ -1,0 +1,32 @@
+@page "/Vehiculos/edit/{Id:int}"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Editar Vehiculo</h3>
+
+@if (Vehiculo != null)
+{
+    <VehiculoForm Vehiculo="Vehiculo" OnValidSubmit="Guardar" Error="@Error" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private VehiculoDTO? Vehiculo;
+    private string? Error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Repository.Get<VehiculoDTO>($"api/vehiculos/{Id}");
+        if (response.Error) { NavigationManager.NavigateTo("/Vehiculos"); return; }
+        Vehiculo = response.Response;
+    }
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Put("api/vehiculos", Vehiculo!);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Vehiculos");
+    }
+}

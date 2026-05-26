@@ -1,6 +1,5 @@
-﻿using Distribuidora.Shared.DTOs.Auth;
+using Distribuidora.Shared.DTOs.Auth;
 using System.Net.Http.Json;
-
 
 namespace Distribuidora.WEB.Services
 {
@@ -15,17 +14,9 @@ namespace Distribuidora.WEB.Services
 
         public async Task<AuthResponseDTO?> Login(LoginDTO dto)
         {
-            var response = await _http.PostAsJsonAsync(
-                "https://localhost:5096/api/auth/login",
-                dto);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
-            return await response.Content
-                .ReadFromJsonAsync<AuthResponseDTO>();
+            var response = await _http.PostAsJsonAsync("api/auth/login", dto);
+            if (!response.IsSuccessStatusCode) return null;
+            return await response.Content.ReadFromJsonAsync<AuthResponseDTO>();
         }
     }
 }

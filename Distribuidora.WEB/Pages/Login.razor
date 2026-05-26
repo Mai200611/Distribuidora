@@ -1,62 +1,52 @@
-﻿@page "/login"
-
+@page "/login"
 @using Distribuidora.Shared.DTOs.Auth
+@using Distribuidora.WEB.Auth
 @using Distribuidora.WEB.Services
-@using Microsoft.JSInterop
-
-@inject AuthService AuthService
+@inject IRepository Repository
+@inject ILoginService LoginService
 @inject NavigationManager Navigation
 
-<h3>Login</h3>
+<div class="row justify-content-center mt-4">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">Iniciar Sesion</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" @bind="login.Email" type="email" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" @bind="login.Password" />
+                </div>
+                <button class="btn btn-primary w-100" @onclick="HandleLogin">Ingresar</button>
 
-<div class="mb-3">
-    <label>Email</label>
-    <input class="form-control" @bind="login.Email" />
-</div>
-
-<div class="mb-3">
-    <label>Password</label>
-    <input type="password"
-           class="form-control"
-           @bind="login.Password" />
-</div>
-
-<button class="btn btn-primary"
-        @onclick="HandleLogin">
-    Ingresar
-</button>
-
-@if (!string.IsNullOrEmpty(error))
-{
-    <div class="alert alert-danger mt-3">
-        @error
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="alert alert-danger mt-3">@error</div>
+                }
+            </div>
+        </div>
     </div>
-}
+</div>
 
 @code {
-
     private LoginDTO login = new();
-
     private string? error;
 
     private async Task HandleLogin()
     {
-        var response = await AuthService.Login(login);
+        var response = await Repository.Post<LoginDTO, AuthResponseDTO>("api/auth/login", login);
 
-        if (response == null)
+        if (response.Error || string.IsNullOrEmpty(response.Response?.Token))
         {
             error = "Credenciales incorrectas";
             return;
         }
 
-        await JS.InvokeVoidAsync(
-            "localStorage.setItem",
-            "token",
-            response.Token);
-
+        await LoginService.LoginAsync(response.Response.Token);
         Navigation.NavigateTo("/");
     }
-
-    [Inject]
-    private IJSRuntime JS { get; set; } = default!;
 }

@@ -1,0 +1,32 @@
+@page "/Zonas/edit/{Id:int}"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Editar Zona</h3>
+
+@if (Zona != null)
+{
+    <ZonaForm Zona="Zona" OnValidSubmit="Guardar" Error="@Error" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private ZonaDTO? Zona;
+    private string? Error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Repository.Get<ZonaDTO>($"api/zonas/{Id}");
+        if (response.Error) { NavigationManager.NavigateTo("/Zonas"); return; }
+        Zona = response.Response;
+    }
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Put("api/zonas", Zona!);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Zonas");
+    }
+}

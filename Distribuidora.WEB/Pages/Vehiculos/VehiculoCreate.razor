@@ -1,0 +1,20 @@
+@page "/Vehiculos/create"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Nuevo Vehiculo</h3>
+<VehiculoForm Vehiculo="Vehiculo" OnValidSubmit="Guardar" Error="@Error" />
+
+@code {
+    private VehiculoDTO Vehiculo = new();
+    private string? Error;
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Post<VehiculoDTO, VehiculoDTO>("api/vehiculos", Vehiculo);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Vehiculos");
+    }
+}

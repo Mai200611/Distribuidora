@@ -1,0 +1,64 @@
+@page "/Zonas"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Zonas</h3>
+
+<a class="btn btn-primary mb-3" href="/Zonas/create">
+    <i class="bi bi-plus-circle"></i> Nueva Zona
+</a>
+
+<GenericList MyList="Zonas">
+    <Body>
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre Zona</th>
+                    <th>Descripcion</th>
+                    <th>Max. Empleados</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var zona in Zonas!)
+                {
+                    <tr>
+                        <td>@zona.NombreZona</td>
+                        <td>@zona.Descripcion</td>
+                        <td>@zona.MaxEmpleados</td>
+                        <td>
+                            <a class="btn btn-warning btn-sm me-1" href="/Zonas/edit/@zona.Id">Editar</a>
+                            <button class="btn btn-danger btn-sm" @onclick="() => Eliminar(zona.Id)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </Body>
+</GenericList>
+
+@if (!string.IsNullOrEmpty(Error))
+{
+    <div class="alert alert-danger mt-2">@Error</div>
+}
+
+@code {
+    public List<ZonaDTO>? Zonas { get; set; }
+    private string? Error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Repository.Get<List<ZonaDTO>>("api/zonas");
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        Zonas = response.Response;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        var response = await Repository.Delete($"api/zonas/{id}");
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        Zonas = Zonas!.Where(z => z.Id != id).ToList();
+    }
+}

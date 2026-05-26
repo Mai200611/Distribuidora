@@ -1,0 +1,40 @@
+@page "/Empleados/edit/{Id:int}"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Editar Empleado</h3>
+
+@if (Empleado != null)
+{
+    <EmpleadoForm Empleado="Empleado" OnValidSubmit="Guardar" Error="@Error" Zonas="Zonas" Vehiculos="Vehiculos" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private EmpleadoDTO? Empleado;
+    private string? Error;
+    private List<ZonaDTO>? Zonas;
+    private List<VehiculoDTO>? Vehiculos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rEmp = await Repository.Get<EmpleadoDTO>($"api/empleados/{Id}");
+        if (rEmp.Error) { NavigationManager.NavigateTo("/Empleados"); return; }
+        Empleado = rEmp.Response;
+
+        var rZonas = await Repository.Get<List<ZonaDTO>>("api/zonas");
+        if (!rZonas.Error) Zonas = rZonas.Response;
+
+        var rVehiculos = await Repository.Get<List<VehiculoDTO>>("api/vehiculos");
+        if (!rVehiculos.Error) Vehiculos = rVehiculos.Response;
+    }
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Put("api/empleados", Empleado!);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Empleados");
+    }
+}

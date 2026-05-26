@@ -1,0 +1,41 @@
+@using Distribuidora.Shared.DTOs
+
+<EditForm Model="Producto" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label">Nombre Producto</label>
+        <InputText class="form-control" @bind-Value="Producto!.NombreProducto" />
+        <ValidationMessage For="@(() => Producto.NombreProducto)" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Categoria</label>
+        <InputText class="form-control" @bind-Value="Producto.Categoria" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Marca</label>
+        <InputText class="form-control" @bind-Value="Producto.Marca" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Precio</label>
+        <InputNumber class="form-control" @bind-Value="Producto.Precio" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Stock</label>
+        <InputNumber class="form-control" @bind-Value="Producto.Stock" />
+    </div>
+
+    <button type="submit" class="btn btn-primary me-2">Guardar</button>
+    <a class="btn btn-secondary" href="/Productos">Cancelar</a>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="alert alert-danger mt-3">@Error</div>
+    }
+</EditForm>
+
+@code {
+    [Parameter] public ProductoDTO? Producto { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public string? Error { get; set; }
+}

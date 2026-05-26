@@ -1,0 +1,20 @@
+@page "/Productos/create"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Nuevo Producto</h3>
+<ProductoForm Producto="Producto" OnValidSubmit="Guardar" Error="@Error" />
+
+@code {
+    private ProductoDTO Producto = new();
+    private string? Error;
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Post<ProductoDTO, ProductoDTO>("api/productos", Producto);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Productos");
+    }
+}

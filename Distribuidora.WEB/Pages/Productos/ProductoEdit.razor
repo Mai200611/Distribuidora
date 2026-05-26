@@ -1,0 +1,32 @@
+@page "/Productos/edit/{Id:int}"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Editar Producto</h3>
+
+@if (Producto != null)
+{
+    <ProductoForm Producto="Producto" OnValidSubmit="Guardar" Error="@Error" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private ProductoDTO? Producto;
+    private string? Error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Repository.Get<ProductoDTO>($"api/productos/{Id}");
+        if (response.Error) { NavigationManager.NavigateTo("/Productos"); return; }
+        Producto = response.Response;
+    }
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Put("api/productos", Producto!);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Productos");
+    }
+}

@@ -1,0 +1,53 @@
+@using Distribuidora.Shared.DTOs
+
+<EditForm Model="Vehiculo" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Tipo Vehiculo</label>
+            <InputText class="form-control" @bind-Value="Vehiculo!.TipoVehiculo" />
+            <ValidationMessage For="@(() => Vehiculo.TipoVehiculo)" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Placa</label>
+            <InputText class="form-control" @bind-Value="Vehiculo.Placa" />
+            <ValidationMessage For="@(() => Vehiculo.Placa)" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Marca</label>
+            <InputText class="form-control" @bind-Value="Vehiculo.Marca" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Modelo</label>
+            <InputText class="form-control" @bind-Value="Vehiculo.Modelo" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Kilometraje Actual</label>
+            <InputNumber class="form-control" @bind-Value="Vehiculo.KilometrajeActual" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Estado</label>
+            <InputSelect class="form-select" @bind-Value="Vehiculo.EstadoVehiculo">
+                <option value="">-- Seleccione --</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="En mantenimiento">En mantenimiento</option>
+            </InputSelect>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary me-2">Guardar</button>
+    <a class="btn btn-secondary" href="/Vehiculos">Cancelar</a>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <div class="alert alert-danger mt-3">@Error</div>
+    }
+</EditForm>
+
+@code {
+    [Parameter] public VehiculoDTO? Vehiculo { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public string? Error { get; set; }
+}

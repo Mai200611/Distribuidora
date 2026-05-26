@@ -1,0 +1,32 @@
+@page "/Tiendas/edit/{Id:int}"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Editar Tienda</h3>
+
+@if (Tienda != null)
+{
+    <TiendaForm Tienda="Tienda" OnValidSubmit="Guardar" Error="@Error" />
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private TiendaDTO? Tienda;
+    private string? Error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Repository.Get<TiendaDTO>($"api/tiendas/{Id}");
+        if (response.Error) { NavigationManager.NavigateTo("/Tiendas"); return; }
+        Tienda = response.Response;
+    }
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Put("api/tiendas", Tienda!);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Tiendas");
+    }
+}

@@ -1,0 +1,31 @@
+@page "/Empleados/create"
+@using Distribuidora.Shared.DTOs
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<h3>Nuevo Empleado</h3>
+<EmpleadoForm Empleado="Empleado" OnValidSubmit="Guardar" Error="@Error" Zonas="Zonas" Vehiculos="Vehiculos" />
+
+@code {
+    private EmpleadoDTO Empleado = new() { FechaIngreso = DateTime.Today };
+    private string? Error;
+    private List<ZonaDTO>? Zonas;
+    private List<VehiculoDTO>? Vehiculos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var rZonas = await Repository.Get<List<ZonaDTO>>("api/zonas");
+        if (!rZonas.Error) Zonas = rZonas.Response;
+
+        var rVehiculos = await Repository.Get<List<VehiculoDTO>>("api/vehiculos");
+        if (!rVehiculos.Error) Vehiculos = rVehiculos.Response;
+    }
+
+    private async Task Guardar()
+    {
+        var response = await Repository.Post<EmpleadoDTO, EmpleadoDTO>("api/empleados", Empleado);
+        if (response.Error) { Error = await response.GetErrorMessageAsync(); return; }
+        NavigationManager.NavigateTo("/Empleados");
+    }
+}
