@@ -1,19 +1,44 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
 using Distribuidora.API.Data;
+using Distribuidora.API.Services.Interfaces;
+using Distribuidora.Shared.DTOs;
 using Distribuidora.Shared.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+
+
 
 namespace Distribuidora.API.Controllers
 {
     [ApiController]
     [Route("api/detallesventa")]
+    [Authorize(Roles = "Admin,Empleado")]
     public class DetalleVentasController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IMapper _mapper;
+        private readonly IDetalleVentaService _service;
+        
+        [HttpGet("perfil")]
+        public IActionResult Perfil()
+        {
+            return Ok(new
+            {
+                Email = User.FindFirst(ClaimTypes.Name)?.Value,
+                Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            });
+        }
 
-        public DetalleVentasController(DataContext context)
+        public DetalleVentasController(
+         DataContext context,
+         IMapper mapper,
+         IDetalleVentaService service)
         {
             _context = context;
+            _mapper = mapper;
+            _service = service;
         }
 
         [HttpGet]
@@ -42,33 +67,48 @@ namespace Distribuidora.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(DetalleVenta detalle)
+        public async Task<ActionResult> Post(DetalleVentaDTO dto)
         {
+            var resultado = await _service
+                .CrearDetalleAsync(dto);
+
+            if (!resultado.ok)
+            {
+                return BadRequest(resultado.error);
+            }
+
+            return Ok(resultado.detalle);
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> Put(DetalleVentaDTO dto)
+        {
+            var detalleDB = await _context.DetallesVenta
+                .FirstOrDefaultAsync(x => x.Id == dto.Id);
+
+            if (detalleDB == null)
+            {
+                return NotFound();
+            }
+
             var producto = await _context.Productos
-            .FirstOrDefaultAsync(x => x.Id == detalle.ProductoId);
+                .FirstOrDefaultAsync(x => x.Id == dto.ProductoId);
 
             if (producto == null)
             {
                 return BadRequest("El producto no existe.");
             }
 
-            detalle.Subtotal =
-            detalle.CantidadVendida * producto.Precio;
-            _context.Add(detalle);
+            detalleDB.CantidadVendida = dto.CantidadVendida;
+            detalleDB.ProductoId = dto.ProductoId;
+            detalleDB.RegistroJornadaId = dto.RegistroJornadaId;
+
+            detalleDB.Subtotal =
+                dto.CantidadVendida * producto.Precio;
 
             await _context.SaveChangesAsync();
 
-            return Ok(detalle);
-        }
-
-        [HttpPut]
-        public async Task<ActionResult> Put(DetalleVenta detalle)
-        {
-            _context.Update(detalle);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(detalle);
+            return Ok(_mapper.Map<DetalleVentaDTO>(detalleDB));
         }
 
         [HttpDelete("{id:int}")]

@@ -17,5 +17,6 @@ namespace Distribuidora.Shared.Entities
 
         [Display(Name = "Máximo Empleados")]
         public int MaxEmpleados { get; set; } = 3;
+        public ICollection<Empleado> Empleados { get; set; } = new List<Empleado>();
     }
 }

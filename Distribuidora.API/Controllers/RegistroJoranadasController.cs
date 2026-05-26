@@ -1,32 +1,57 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
 using Distribuidora.API.Data;
-using Distribuidora.Shared.Entities;
+using Distribuidora.API.Services.Interfaces;
+using Distribuidora.Shared.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Distribuidora.API.Controllers
 {
     [ApiController]
     [Route("api/registros")]
+    [Authorize(Roles = "Admin,Supervisor")]
     public class RegistroJornadasController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IMapper _mapper;
+        private readonly IRegistroJornadaService _service;
 
-        public RegistroJornadasController(DataContext context)
+        [HttpGet("perfil")]
+        public IActionResult Perfil()
+        {
+            return Ok(new
+            {
+                Email = User.FindFirst(ClaimTypes.Name)?.Value,
+                Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            });
+        }
+        public RegistroJornadasController(
+            DataContext context,
+            IMapper mapper,
+            IRegistroJornadaService service)
         {
             _context = context;
+            _mapper = mapper;
+            _service = service;
         }
 
+        // GET
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            return Ok(await _context.RegistrosJornada
+            var registros = await _context.RegistrosJornada
                 .Include(x => x.Empleado)
                 .Include(x => x.Vehiculo)
                 .Include(x => x.Tienda)
                 .Include(x => x.DetallesVenta)
-                .ToListAsync());
+                .ToListAsync();
+
+            return Ok(_mapper.Map<List<RegistroJornadaDTO>>(registros));
         }
 
+        // GET ID
         [HttpGet("{id:int}")]
         public async Task<ActionResult> Get(int id)
         {
@@ -42,29 +67,46 @@ namespace Distribuidora.API.Controllers
                 return NotFound();
             }
 
-            return Ok(registro);
+            return Ok(_mapper.Map<RegistroJornadaDTO>(registro));
         }
 
+        // POST
         [HttpPost]
-        public async Task<ActionResult> Post(RegistroJornada registro)
+        public async Task<ActionResult> Post(RegistroJornadaDTO dto)
         {
-            _context.Add(registro);
+            var resultado = await _service
+                .CrearRegistroAsync(dto);
 
-            await _context.SaveChangesAsync();
+            if (!resultado.Ok)
+            {
+                return BadRequest(resultado.Mensaje);
+            }
 
-            return Ok(registro);
+            return Ok(resultado.Registro);
         }
 
+        // PUT
         [HttpPut]
-        public async Task<ActionResult> Put(RegistroJornada registro)
+        public async Task<ActionResult> Put(RegistroJornadaDTO dto)
         {
+            var registro = await _context.RegistrosJornada
+                .FirstOrDefaultAsync(x => x.Id == dto.Id);
+
+            if (registro == null)
+            {
+                return NotFound();
+            }
+
+            registro = _mapper.Map(dto, registro);
+
             _context.Update(registro);
 
             await _context.SaveChangesAsync();
 
-            return Ok(registro);
+            return Ok(_mapper.Map<RegistroJornadaDTO>(registro));
         }
 
+        // DELETE
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {

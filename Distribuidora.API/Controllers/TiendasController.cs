@@ -1,15 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Distribuidora.API.Data;
+﻿using Distribuidora.API.Data;
 using Distribuidora.Shared.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Distribuidora.API.Controllers
 {
     [ApiController]
     [Route("api/tiendas")]
+    [Authorize(Roles = "Admin,Empleado,Supervisor")]
     public class TiendasController : ControllerBase
     {
         private readonly DataContext _context;
+        
+        [HttpGet("perfil")]
+        public IActionResult Perfil()
+        {
+            return Ok(new
+            {
+                Email = User.FindFirst(ClaimTypes.Name)?.Value,
+                Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            });
+        }
 
         public TiendasController(DataContext context)
         {

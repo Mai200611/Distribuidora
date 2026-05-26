@@ -1,30 +1,57 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
 using Distribuidora.API.Data;
+using Distribuidora.API.Services;
+using Distribuidora.Shared.DTOs;
 using Distribuidora.Shared.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Distribuidora.API.Controllers
 {
     [ApiController]
     [Route("api/empleados")]
+    [Authorize(Roles = "Admin,Supervisor")]
     public class EmpleadosController : ControllerBase
     {
-        private readonly DataContext _context;
-
-        public EmpleadosController(DataContext context)
+        [HttpGet("perfil")]
+        public IActionResult Perfil()
         {
-            _context = context;
+            return Ok(new
+            {
+                Email = User.FindFirst(ClaimTypes.Name)?.Value,
+                Id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            });
         }
 
+        private readonly DataContext _context;
+        private readonly IMapper _mapper;
+        private readonly EmpleadoService _service;
+
+        public EmpleadosController(
+            DataContext context,
+            IMapper mapper,
+            EmpleadoService service)
+        {
+            _context = context;
+            _mapper = mapper;
+            _service = service;
+        }
+
+        // GET
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            return Ok(await _context.Empleados
+            var empleados = await _context.Empleados
                 .Include(x => x.Zona)
                 .Include(x => x.Vehiculo)
-                .ToListAsync());
+                .ToListAsync();
+
+            return Ok(_mapper.Map<List<EmpleadoDTO>>(empleados));
         }
 
+        // GET ID
         [HttpGet("{id:int}")]
         public async Task<ActionResult> Get(int id)
         {
@@ -38,45 +65,40 @@ namespace Distribuidora.API.Controllers
                 return NotFound();
             }
 
-            return Ok(empleado);
+            return Ok(_mapper.Map<EmpleadoDTO>(empleado));
         }
 
+        // POST
         [HttpPost]
-        public async Task<ActionResult> Post(Empleado empleado)
-        
+        public async Task<ActionResult> Post(EmpleadoDTO dto)
         {
-            var cantidadEmpleados = await _context.Empleados
-            .CountAsync(x => x.ZonaId == empleado.ZonaId);
+            var resultado = await _service
+                .CrearEmpleadoAsync(dto);
 
-            if (cantidadEmpleados >= 3)
+            if (!resultado.Ok)
             {
-                return BadRequest("La zona ya tiene el máximo de empleados permitidos.");
+                return BadRequest(resultado.Mensaje);
             }
 
-            _context.Add(empleado);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(empleado);
+            return Ok(_mapper.Map<EmpleadoDTO>(resultado.Empleado));
         }
 
+        // PUT
         [HttpPut]
-        public async Task<ActionResult> Put(Empleado empleado)
+        public async Task<ActionResult> Put(EmpleadoDTO dto)
         {
-            var cantidadEmpleados = await _context.Empleados
-            .CountAsync(x => x.ZonaId == empleado.ZonaId);
+            var resultado = await _service
+                .ActualizarEmpleadoAsync(dto);
 
-            if (cantidadEmpleados >= 3)
+            if (!resultado.Ok)
             {
-                return BadRequest("La zona ya tiene el máximo de empleados permitidos.");
+                return NotFound(resultado.Mensaje);
             }
-            _context.Update(empleado);
 
-            await _context.SaveChangesAsync();
-
-            return Ok(empleado);
+            return Ok(resultado.Mensaje);
         }
 
+        // DELETE
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {

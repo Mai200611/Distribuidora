@@ -1,0 +1,62 @@
+﻿@page "/login"
+
+@using Distribuidora.Shared.DTOs.Auth
+@using Distribuidora.WEB.Services
+@using Microsoft.JSInterop
+
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<h3>Login</h3>
+
+<div class="mb-3">
+    <label>Email</label>
+    <input class="form-control" @bind="login.Email" />
+</div>
+
+<div class="mb-3">
+    <label>Password</label>
+    <input type="password"
+           class="form-control"
+           @bind="login.Password" />
+</div>
+
+<button class="btn btn-primary"
+        @onclick="HandleLogin">
+    Ingresar
+</button>
+
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="alert alert-danger mt-3">
+        @error
+    </div>
+}
+
+@code {
+
+    private LoginDTO login = new();
+
+    private string? error;
+
+    private async Task HandleLogin()
+    {
+        var response = await AuthService.Login(login);
+
+        if (response == null)
+        {
+            error = "Credenciales incorrectas";
+            return;
+        }
+
+        await JS.InvokeVoidAsync(
+            "localStorage.setItem",
+            "token",
+            response.Token);
+
+        Navigation.NavigateTo("/");
+    }
+
+    [Inject]
+    private IJSRuntime JS { get; set; } = default!;
+}
