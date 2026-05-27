@@ -23,6 +23,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddScoped<IDetalleVentaService, DetalleVentaService>();
 builder.Services.AddScoped<EmpleadoService>();
 builder.Services.AddScoped<IRegistroJornadaService, RegistroJornadaService>();
+builder.Services.AddScoped<IFileStorage, FileStorage>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -39,12 +40,7 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Distribuidora.API",
-        Version = "v1"
-    });
-
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Distribuidora.API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -54,17 +50,12 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Ingrese el token JWT"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
@@ -109,17 +100,12 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager =
-        scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     string[] roles = { "Admin", "Empleado", "Supervisor" };
-
     foreach (string role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
-        {
             await roleManager.CreateAsync(new IdentityRole(role));
-        }
     }
 }
 
@@ -130,12 +116,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowBlazor");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

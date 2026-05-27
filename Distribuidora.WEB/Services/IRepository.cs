@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Distribuidora.WEB.Services
 {
     public class HttpResponseWrapper<T>
@@ -27,7 +29,6 @@ namespace Distribuidora.WEB.Services
     public interface IRepository
     {
         Task<HttpResponseWrapper<T>> Get<T>(string url);
-        Task<HttpResponseWrapper<T>> Post<T>(string url, T model);
         Task<HttpResponseWrapper<TResponse>> Post<TRequest, TResponse>(string url, TRequest model);
         Task<HttpResponseWrapper<T>> Put<T>(string url, T model);
         Task<HttpResponseWrapper<object>> Delete(string url);

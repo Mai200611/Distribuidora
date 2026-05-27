@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Distribuidora.Shared.DTOs.Auth
 {
@@ -12,8 +12,8 @@ namespace Distribuidora.Shared.DTOs.Auth
         [Required]
         [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres.")]
         public string Password { get; set; } = null!;
-
         [Required]
         public string Role { get; set; } = null!;
+        public string? Photo { get; set; }
     }
 }

@@ -41,9 +41,12 @@
                             <InputText class="form-control" type="password" @bind-Value="registerDTO.Password" />
                             <ValidationMessage For="@(() => registerDTO.Password)" />
                         </div>
+                        <div class="col-12">
+                            <InputImg Label="Foto de perfil" ImageSelected="ImageSelected" ImageURL="@imageUrl" />
+                        </div>
                     </div>
 
-                    <button class="btn btn-primary w-100" type="submit">Registrar</button>
+                    <button class="btn btn-primary w-100 mt-2" type="submit">Registrar</button>
 
                     @if (!string.IsNullOrEmpty(Error))
                     {
@@ -58,23 +61,26 @@
 @code {
     private RegisterDTO registerDTO = new();
     private string? Error;
+    private string? imageUrl;
+
+    private void ImageSelected(string imagenBase64)
+    {
+        registerDTO.Photo = imagenBase64;
+        imageUrl = null;
+    }
 
     private async Task CreateUserAsync()
     {
-        var response = await Repository.Post<RegisterDTO>("api/auth/register", registerDTO);
-        if (response.Error)
+        var registerResp = await Repository.Post<RegisterDTO, AuthResponseDTO>("api/auth/register", registerDTO);
+        if (registerResp.Error)
         {
-            Error = await response.GetErrorMessageAsync();
+            Error = await registerResp.GetErrorMessageAsync();
             return;
         }
 
-        // Auto login after register: do login call
-        var loginResp = await Repository.Post<AuthResponseDTO>("api/auth/login",
-            new LoginDTO { Email = registerDTO.Email, Password = registerDTO.Password });
-
-        if (!loginResp.Error && !string.IsNullOrEmpty(loginResp.Response?.Token))
+        if (!string.IsNullOrEmpty(registerResp.Response?.Token))
         {
-            await LoginService.LoginAsync(loginResp.Response.Token);
+            await LoginService.LoginAsync(registerResp.Response.Token);
             NavigationManager.NavigateTo("/");
         }
         else

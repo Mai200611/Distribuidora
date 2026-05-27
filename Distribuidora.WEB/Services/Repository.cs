@@ -34,18 +34,6 @@ namespace Distribuidora.WEB.Services
             return new HttpResponseWrapper<T>(default, true, response);
         }
 
-        public async Task<HttpResponseWrapper<T>> Post<T>(string url, T model)
-        {
-            await SetAuthHeader();
-            var response = await _http.PostAsJsonAsync(url, model);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<T>();
-                return new HttpResponseWrapper<T>(result, false, response);
-            }
-            return new HttpResponseWrapper<T>(default, true, response);
-        }
-
         public async Task<HttpResponseWrapper<TResponse>> Post<TRequest, TResponse>(string url, TRequest model)
         {
             await SetAuthHeader();
