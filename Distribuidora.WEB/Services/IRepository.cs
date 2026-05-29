@@ -31,6 +31,7 @@ namespace Distribuidora.WEB.Services
         Task<HttpResponseWrapper<T>> Get<T>(string url);
         Task<HttpResponseWrapper<TResponse>> Post<TRequest, TResponse>(string url, TRequest model);
         Task<HttpResponseWrapper<T>> Put<T>(string url, T model);
+        Task<HttpResponseWrapper<TResponse>> Put<TRequest, TResponse>(string url, TRequest model);
         Task<HttpResponseWrapper<object>> Delete(string url);
     }
 }

@@ -1,0 +1,102 @@
+@page "/EditUser"
+@using Distribuidora.Shared.DTOs.Auth
+@using Distribuidora.WEB.Auth
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject ILoginService LoginService
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<h3>Editar Usuario</h3>
+
+@if (userDTO is null)
+{
+    <div class="d-flex justify-content-center mt-4">
+        <div class="spinner-border text-primary" role="status" />
+    </div>
+}
+else
+{
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Editar Perfil</h5>
+                    <a class="btn btn-outline-light btn-sm" href="/changePassword">Cambiar Contraseña</a>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="userDTO" OnValidSubmit="SaveUserAsync">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Nombre Completo</label>
+                            <InputText class="form-control" @bind-Value="userDTO.NombreCompleto" />
+                            <ValidationMessage For="@(() => userDTO.NombreCompleto)" />
+                        </div>
+
+                        <InputImg Label="Foto de perfil" ImageSelected="ImageSelected" ImageURL="@imageUrl" />
+
+                        <button type="submit" class="btn btn-primary w-100 mt-2">Guardar Cambios</button>
+
+                        @if (!string.IsNullOrEmpty(Error))
+                        {
+                            <div class="alert alert-danger mt-3">@Error</div>
+                        }
+                        @if (Success)
+                        {
+                            <div class="alert alert-success mt-3">Perfil actualizado correctamente.</div>
+                        }
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private EditUserDTO? userDTO;
+    private string? imageUrl;
+    private string? Error;
+    private bool Success;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Repository.Get<EditUserDTO>("api/auth");
+        if (response.Error)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+        userDTO = response.Response;
+
+        if (!string.IsNullOrEmpty(userDTO!.Photo))
+        {
+            imageUrl = userDTO.Photo;
+            userDTO.Photo = null;
+        }
+    }
+
+    private void ImageSelected(string imagenBase64)
+    {
+        userDTO!.Photo = imagenBase64;
+        imageUrl = null;
+    }
+
+    private async Task SaveUserAsync()
+    {
+        Error = null;
+        Success = false;
+        var response = await Repository.Put<EditUserDTO, AuthResponseDTO>("api/auth", userDTO!);
+        if (response.Error)
+        {
+            Error = await response.GetErrorMessageAsync();
+            return;
+        }
+
+        // Update token with new photo/name
+        if (!string.IsNullOrEmpty(response.Response?.Token))
+            await LoginService.LoginAsync(response.Response.Token);
+
+        Success = true;
+    }
+}

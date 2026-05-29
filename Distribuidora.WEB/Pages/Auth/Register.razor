@@ -1,9 +1,7 @@
 @page "/Register"
 @using Distribuidora.Shared.DTOs.Auth
-@using Distribuidora.WEB.Auth
 @using Distribuidora.WEB.Services
 @inject IRepository Repository
-@inject ILoginService LoginService
 @inject NavigationManager NavigationManager
 
 <div class="row justify-content-center mt-4">
@@ -13,46 +11,55 @@
                 <h4 class="mb-0">Registrar Nuevo Usuario</h4>
             </div>
             <div class="card-body">
-                <EditForm Model="registerDTO" OnValidSubmit="CreateUserAsync">
-                    <DataAnnotationsValidator />
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nombre Completo</label>
-                            <InputText class="form-control" @bind-Value="registerDTO.NombreCompleto" />
-                            <ValidationMessage For="@(() => registerDTO.NombreCompleto)" />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Email</label>
-                            <InputText class="form-control" type="email" @bind-Value="registerDTO.Email" />
-                            <ValidationMessage For="@(() => registerDTO.Email)" />
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Rol</label>
-                            <InputSelect class="form-select" @bind-Value="registerDTO.Role">
-                                <option value="">-- Seleccione --</option>
-                                <option value="Admin">Admin</option>
-                                <option value="Supervisor">Supervisor</option>
-                                <option value="Empleado">Empleado</option>
-                            </InputSelect>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Contrasena</label>
-                            <InputText class="form-control" type="password" @bind-Value="registerDTO.Password" />
-                            <ValidationMessage For="@(() => registerDTO.Password)" />
-                        </div>
-                        <div class="col-12">
-                            <InputImg Label="Foto de perfil" ImageSelected="ImageSelected" ImageURL="@imageUrl" />
-                        </div>
+                @if (Success)
+                {
+                    <div class="alert alert-success">
+                        Tu cuenta ha sido creada. Se ha enviado un correo de confirmación a <strong>@emailRegistrado</strong>. 
+                        Sigue las instrucciones para activar tu cuenta.
                     </div>
+                    <a href="/login" class="btn btn-primary">Ir al Login</a>
+                }
+                else
+                {
+                    <EditForm Model="registerDTO" OnValidSubmit="CreateUserAsync">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre Completo</label>
+                                <InputText class="form-control" @bind-Value="registerDTO.NombreCompleto" />
+                                <ValidationMessage For="@(() => registerDTO.NombreCompleto)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <InputText class="form-control" type="email" @bind-Value="registerDTO.Email" />
+                                <ValidationMessage For="@(() => registerDTO.Email)" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Rol</label>
+                                <InputSelect class="form-select" @bind-Value="registerDTO.Role">
+                                    <option value="">-- Seleccione --</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Supervisor">Supervisor</option>
+                                    <option value="Empleado">Empleado</option>
+                                </InputSelect>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contrasena</label>
+                                <InputText class="form-control" type="password" @bind-Value="registerDTO.Password" />
+                                <ValidationMessage For="@(() => registerDTO.Password)" />
+                            </div>
+                            <div class="col-12">
+                                <InputImg Label="Foto de perfil" ImageSelected="ImageSelected" ImageURL="@imageUrl" />
+                            </div>
+                        </div>
+                        <button class="btn btn-primary w-100 mt-2" type="submit">Registrar</button>
 
-                    <button class="btn btn-primary w-100 mt-2" type="submit">Registrar</button>
-
-                    @if (!string.IsNullOrEmpty(Error))
-                    {
-                        <div class="alert alert-danger mt-3">@Error</div>
-                    }
-                </EditForm>
+                        @if (!string.IsNullOrEmpty(Error))
+                        {
+                            <div class="alert alert-danger mt-3">@Error</div>
+                        }
+                    </EditForm>
+                }
             </div>
         </div>
     </div>
@@ -62,6 +69,8 @@
     private RegisterDTO registerDTO = new();
     private string? Error;
     private string? imageUrl;
+    private bool Success;
+    private string? emailRegistrado;
 
     private void ImageSelected(string imagenBase64)
     {
@@ -71,21 +80,13 @@
 
     private async Task CreateUserAsync()
     {
-        var registerResp = await Repository.Post<RegisterDTO, AuthResponseDTO>("api/auth/register", registerDTO);
-        if (registerResp.Error)
+        var response = await Repository.Post<RegisterDTO, object>("api/auth/register", registerDTO);
+        if (response.Error)
         {
-            Error = await registerResp.GetErrorMessageAsync();
+            Error = await response.GetErrorMessageAsync();
             return;
         }
-
-        if (!string.IsNullOrEmpty(registerResp.Response?.Token))
-        {
-            await LoginService.LoginAsync(registerResp.Response.Token);
-            NavigationManager.NavigateTo("/");
-        }
-        else
-        {
-            NavigationManager.NavigateTo("/login");
-        }
+        emailRegistrado = registerDTO.Email;
+        Success = true;
     }
 }

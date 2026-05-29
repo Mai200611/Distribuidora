@@ -24,6 +24,7 @@ builder.Services.AddScoped<IDetalleVentaService, DetalleVentaService>();
 builder.Services.AddScoped<EmpleadoService>();
 builder.Services.AddScoped<IRegistroJornadaService, RegistroJornadaService>();
 builder.Services.AddScoped<IFileStorage, FileStorage>();
+builder.Services.AddScoped<IMailHelper, MailHelper>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -65,16 +66,20 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<DataContext>(x =>
     x.UseSqlServer("name=DefaultConnection"));
 
-builder.Services.Configure<IdentityOptions>(options =>
+builder.Services.AddIdentity<User, IdentityRole>(x =>
 {
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 6;
-});
-
-builder.Services.AddIdentity<User, IdentityRole>()
+    x.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+    x.SignIn.RequireConfirmedEmail = true;
+    x.User.RequireUniqueEmail = true;
+    x.Password.RequireDigit = false;
+    x.Password.RequiredUniqueChars = 0;
+    x.Password.RequireLowercase = false;
+    x.Password.RequireNonAlphanumeric = false;
+    x.Password.RequireUppercase = false;
+    x.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    x.Lockout.MaxFailedAccessAttempts = 3;
+    x.Lockout.AllowedForNewUsers = true;
+})
     .AddEntityFrameworkStores<DataContext>()
     .AddDefaultTokenProviders();
 

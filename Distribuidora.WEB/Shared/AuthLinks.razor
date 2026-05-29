@@ -4,7 +4,7 @@
         {
             <img src="@photoUser" width="40" height="40" style="border-radius:50%; object-fit:cover;" class="me-2" />
         }
-        <span class="text-white me-2">Hola, @context.User.Identity!.Name</span>
+        <a href="/EditUser" class="text-white me-2">Hola, @context.User.Identity!.Name</a>
         <a href="logout" class="btn btn-outline-light btn-sm">Cerrar Sesion</a>
     </Authorized>
     <NotAuthorized>

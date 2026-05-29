@@ -1,0 +1,47 @@
+@page "/ConfirmEmail"
+@using Distribuidora.WEB.Services
+@inject IRepository Repository
+@inject NavigationManager NavigationManager
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Confirmación de Email</h5>
+            </div>
+            <div class="card-body text-center">
+                <p>Presiona el botón para confirmar tu cuenta.</p>
+                <button class="btn btn-primary" @onclick="ConfirmAccountAsync">Confirmar Cuenta</button>
+
+                @if (!string.IsNullOrEmpty(Error))
+                {
+                    <div class="alert alert-danger mt-3">@Error</div>
+                }
+                @if (Success)
+                {
+                    <div class="alert alert-success mt-3">
+                        Cuenta confirmada. <a href="/login">Iniciar sesión</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter][SupplyParameterFromQuery] public string UserId { get; set; } = "";
+    [Parameter][SupplyParameterFromQuery] public string Token { get; set; } = "";
+    private string? Error;
+    private bool Success;
+
+    private async Task ConfirmAccountAsync()
+    {
+        var response = await Repository.Get<object>($"api/auth/ConfirmEmail?userId={UserId}&token={Token}");
+        if (response.Error)
+        {
+            Error = await response.GetErrorMessageAsync();
+            return;
+        }
+        Success = true;
+    }
+}
